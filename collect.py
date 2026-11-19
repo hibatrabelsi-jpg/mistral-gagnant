@@ -69,14 +69,14 @@ def save_weather(connection, rows):
         execute_values(cursor, sql, rows)
     connection.commit()
 
-    def get_last_date(connection):
+def get_last_date(connection):
         with connection.cursor() as cursor:
             cursor.execute("SELECT MAX(measured_at) FROM air_quality;")
-        last_timestamp = cursor.fetchone()[0]
+            last_timestamp = cursor.fetchone()[0]
         if last_timestamp is None:
             return None
         return last_timestamp.date()
-
+    
 def main():
     yesterday = date.today() - timedelta(days=1)
 
@@ -105,3 +105,6 @@ def main():
     except Exception as error:
         logging.error(f"Collection failed: {error}")
         raise
+
+if __name__ == "__main__":
+    main()
