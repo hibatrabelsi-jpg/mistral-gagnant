@@ -69,18 +69,33 @@ def save_weather(connection, rows):
         execute_values(cursor, sql, rows)
     connection.commit()
 
+    def get_last_date(connection):
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT MAX(measured_at) FROM air_quality;")
+        last_timestamp = cursor.fetchone()[0]
+        if last_timestamp is None:
+            return None
+        return last_timestamp.date()
+
 def main():
     yesterday = date.today() - timedelta(days=1)
-    if len(sys.argv) > 1 and sys.argv[1] == "history":
-        start_date = yesterday - timedelta(days=365)
-    else:
-        start_date = yesterday
 
     try:
+        connection = psycopg2.connect(os.getenv("DATABASE_URL"))
+        last_date = get_last_date(connection)
+
+        if (len(sys.argv) > 1 and sys.argv[1] == "history") or last_date is None:
+            start_date = yesterday - timedelta(days=365)
+        else:
+            start_date = last_date + timedelta(days=1)
+
+        if start_date > yesterday:
+            logging.info("Database already up to date, nothing to collect")
+            connection.close()
+            return
+
         air = fetch_air_quality(start_date, yesterday)
         weather = fetch_weather(start_date, yesterday)
-
-        connection = psycopg2.connect(os.getenv("DATABASE_URL"))
         save_air_quality(connection, air)
         save_weather(connection, weather)
         connection.close()
@@ -90,7 +105,3 @@ def main():
     except Exception as error:
         logging.error(f"Collection failed: {error}")
         raise
-
-
-if __name__ == "__main__":
-    main()

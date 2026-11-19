@@ -2,8 +2,8 @@ name: Daily collection
 
 on:
   schedule:
-    - cron: '0 7 * * *'  # Runs every day at 7 AM UTC (8 AM in Paris)
-  workflow_dispatch:  # Allows manual triggering of the workflow
+    - cron: '17 6 * * *'  
+    # Every day at 6:17 AM UTC (7:17 AM in Paris), off the busy top of the hour  workflow_dispatch:  # Allows manual triggering of the workflow
 
 jobs:
   collect:
